@@ -1,0 +1,29 @@
+# Ignore all output files
+*.csv
+*.mp4
+
+# build directories
+/build/
+/build-*/
+.vscode/
+
+# MATLAB autosave files
+*.asv
+
+# compiled MEX binaries
+*.mexw64
+*.mexa64
+*.mexmaci64
+
+# common build artifacts
+*.o
+*.obj
+*.so
+*.dll
+*.dylib
+*.a
+*.lib
+*.pdb
+
+.obsidian/
+Vault/
