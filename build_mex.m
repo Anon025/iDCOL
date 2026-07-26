@@ -2,14 +2,22 @@ function build_mex()
     thisFile = mfilename('fullpath');
     rootDir  = fileparts(thisFile);
 
+    eigenDir = findEigenDir();
+
     inc1  = ['-I' rootDir];
-    inc2  = ['-I' fullfile(rootDir,'external','eigen')];
+    inc2  = ['-I' eigenDir];
 
     outd = fullfile(rootDir,'mex');
     if ~exist(outd,'dir'), mkdir(outd); end
 
-    % C++17 flag (compiler-dependent)
-    if ispc
+    % C++17 flag (compiler-dependent). The core headers use std::optional,
+    % so this must actually take effect -- checking ispc alone is wrong on
+    % Windows when MATLAB is configured to use MinGW (GNU) rather than MSVC
+    % for MEX: MinGW's compiler doesn't understand MSVC's /std:c++17 syntax
+    % and silently ignores it, leaving C++17 off and the build failing with
+    % "'optional' in namespace 'std' does not name a template type".
+    cc = mex.getCompilerConfigurations('C++','Selected');
+    if ispc && contains(cc.Manufacturer, 'Microsoft', 'IgnoreCase', true)
         cxx17 = 'COMPFLAGS=$COMPFLAGS /std:c++17';
     else
         cxx17 = 'CXXFLAGS=$CXXFLAGS -std=c++17';
@@ -38,4 +46,44 @@ function build_mex()
         fullfile('core','radial_bounds.cpp'));
 
     fprintf('[iDCOL] MEX build complete\n');
+end
+
+function eigenDir = findEigenDir()
+    eigenDir = getenv('EIGEN3_INCLUDE_DIR');
+    if ~isempty(eigenDir)
+        return;
+    end
+
+    candidates = {};
+    vcpkgRoot = getenv('VCPKG_ROOT');
+    if ispc
+        if ~isempty(vcpkgRoot)
+            candidates{end+1} = fullfile(vcpkgRoot,'installed','x64-windows','include','eigen3');
+        end
+        candidates{end+1} = 'C:/vcpkg/installed/x64-windows/include/eigen3';
+    elseif ismac
+        if ~isempty(vcpkgRoot)
+            candidates{end+1} = fullfile(vcpkgRoot,'installed','x64-osx','include','eigen3');
+        end
+        candidates{end+1} = '/opt/homebrew/include/eigen3';
+        candidates{end+1} = '/usr/local/include/eigen3';
+    else
+        if ~isempty(vcpkgRoot)
+            candidates{end+1} = fullfile(vcpkgRoot,'installed','x64-linux','include','eigen3');
+        end
+        candidates{end+1} = '/usr/include/eigen3';
+        candidates{end+1} = '/usr/local/include/eigen3';
+    end
+
+    for i = 1:numel(candidates)
+        if isfolder(candidates{i})
+            eigenDir = candidates{i};
+            return;
+        end
+    end
+
+    error('iDCOL:build_mex:EigenNotFound', ...
+        ['Could not find the Eigen3 headers. Install Eigen3 (e.g. "sudo apt install libeigen3-dev" ' ...
+         'on Ubuntu, "brew install eigen" on macOS, or "vcpkg install eigen3" on Windows) or set the ' ...
+         'EIGEN3_INCLUDE_DIR environment variable to the folder containing Eigen/Dense, then re-run build_mex.']);
 end

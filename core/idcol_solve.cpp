@@ -87,9 +87,9 @@ static void map_solution_to_original(NewtonResult& res, double scale_factor) {
 // ---------------- implementation ----------------
 
 SolveResult idcol_solve(const SolveData& S,
-                        std::optional<Guess> user_guess,
-                        NewtonOptions opt_in,
-                        SurrogateOptions sopt)
+                        const std::optional<Guess>& user_guess,
+                        const NewtonOptions& opt_in,
+                        const SurrogateOptions& sopt)
 {
     const ProblemData& P_in = S.P;
     const RadialBounds& bounds1 = S.bounds1;
@@ -106,8 +106,21 @@ SolveResult idcol_solve(const SolveData& S,
 
     SolveResult out;
 
-    // Work on a local copy because we overwrite P.g2 for the surrogate problem
-    ProblemData P = P_in;
+    // Work on a local copy because we overwrite P.g for the surrogate problem.
+    // Reused per-recursion-depth (not a single shared static, so the
+    // recursive continuation calls below don't clobber the caller's scratch)
+    // instead of a fresh ProblemData every call: params1/params2 keep the
+    // same size across repeated solves for a given shape pair, so
+    // VectorXd::operator= has nothing to reallocate after the first call.
+    constexpr int kMaxPooledDepth = 4;
+    static thread_local ProblemData P_pool[kMaxPooledDepth];
+    ProblemData& P = P_pool[std::min(solve_depth, kMaxPooledDepth) - 1];
+
+    P.shape_id1 = P_in.shape_id1;
+    P.shape_id2 = P_in.shape_id2;
+    P.params1   = P_in.params1;
+    P.params2   = P_in.params2;
+    P.g         = P_in.g;
 
     // ------------------------------------------------------------------
     // Unit scaling (NOT surrogate scaling)

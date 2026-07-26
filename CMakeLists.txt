@@ -4,6 +4,8 @@ project(idcol LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+find_package(Eigen3 REQUIRED NO_MODULE)
+
 # ---------- Core sources ----------
 set(IDCOL_CORE
     core/idcol_solve.cpp
@@ -13,40 +15,30 @@ set(IDCOL_CORE
     core/radial_bounds.cpp
 )
 
+# ---------- Helper to register an example executable ----------
+function(add_idcol_example tgt src)
+    add_executable(${tgt} ${src} ${IDCOL_CORE})
+
+    target_include_directories(${tgt} PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}
+    )
+
+    target_link_libraries(${tgt} PRIVATE Eigen3::Eigen)
+
+    if (MSVC)
+        target_compile_options(${tgt} PRIVATE $<$<CONFIG:Release>:/O2 /DNDEBUG>)
+    else()
+        target_compile_options(${tgt} PRIVATE $<$<CONFIG:Release>:-O3 -DNDEBUG -march=native>)
+    endif()
+
+    target_compile_definitions(${tgt} PRIVATE
+        $<$<CONFIG:Release>:EIGEN_NO_DEBUG EIGEN_MPL2_ONLY EIGEN_DONT_PARALLELIZE>
+    )
+endfunction()
+
 # ---------- Executables ----------
-add_executable(idcol_example
-    examples/main.cpp
-    ${IDCOL_CORE}
-)
-
-add_executable(idcol_ergodic
-    examples/ergodic.cpp
-    ${IDCOL_CORE}
-)
-
-# ---------- Include paths ----------
-target_include_directories(idcol_example PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/external/eigen
-)
-
-target_include_directories(idcol_ergodic PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/external/eigen
-)
-
-# ---------- Optimization + Eigen knobs (Release only) ----------
-if (MSVC)
-    target_compile_options(idcol_example PRIVATE $<$<CONFIG:Release>:/O2 /DNDEBUG>)
-    target_compile_options(idcol_ergodic PRIVATE $<$<CONFIG:Release>:/O2 /DNDEBUG>)
-
-    target_compile_definitions(idcol_example PRIVATE $<$<CONFIG:Release>:EIGEN_NO_DEBUG EIGEN_MPL2_ONLY EIGEN_DONT_PARALLELIZE>)
-    target_compile_definitions(idcol_ergodic PRIVATE $<$<CONFIG:Release>:EIGEN_NO_DEBUG EIGEN_MPL2_ONLY EIGEN_DONT_PARALLELIZE>)
-else()
-    target_compile_options(idcol_example PRIVATE $<$<CONFIG:Release>:-O3 -DNDEBUG -march=native>)
-    target_compile_options(idcol_ergodic PRIVATE $<$<CONFIG:Release>:-O3 -DNDEBUG -march=native>)
-
-    target_compile_definitions(idcol_example PRIVATE $<$<CONFIG:Release>:EIGEN_NO_DEBUG EIGEN_MPL2_ONLY EIGEN_DONT_PARALLELIZE>)
-    target_compile_definitions(idcol_ergodic PRIVATE $<$<CONFIG:Release>:EIGEN_NO_DEBUG EIGEN_MPL2_ONLY EIGEN_DONT_PARALLELIZE>)
-endif()
-
+add_idcol_example(idcol_example  examples/main.cpp)
+add_idcol_example(idcol_ergodic  examples/ergodic.cpp)
+add_idcol_example(idcol_scaling  examples/scaling_polytope.cpp)
+add_idcol_example(idcol_test_support  examples/test_support.cpp)
+add_idcol_example(idcol_test_ray  examples/test_ray.cpp)

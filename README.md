@@ -8,6 +8,10 @@ iDCOL is a differentiable contact kinematic framework for strictly convex contac
 
 **Paper:** [Collision Detection with Analytical Derivatives of Contact Kinematics](https://www.arxiv.org/abs/2602.03250)
 
+**Website:** [gvsrobotics.github.io/iDCOL](https://gvsrobotics.github.io/iDCOL)
+
+**Julia port:** a Julia implementation is available at [iDCOL.jl](https://github.com/GVSRobotics/iDCOL.jl)
+
 It provides:
 
 * robust collision detection for strictly convex implicit shapes,
@@ -128,22 +132,11 @@ Superelliptic cylinder.
 - `h` : half-height  
 - `n` : shape exponent
 ---
-## Getting the source
-
-This repository uses Git submodules.
-
-After cloning, initialize dependencies with:
-
-```bash
-git submodule update --init --recursive
-```
----
-
 ## Requirements
 
 * CMake (>= 3.16)
 * A C++17-compatible compiler
-* Eigen (included as a submodule)
+* Eigen3, discoverable via CMake's `find_package(Eigen3)` (e.g. installed through [vcpkg](https://vcpkg.io/), your system package manager, or any other install that provides `Eigen3Config.cmake`)
 * (Optional) MATLAB with C++17 MEX support
 
 ---
@@ -160,9 +153,11 @@ cmake --build build
 ### Windows (Visual Studio)
 
 ```bash
-cmake -S . -B build -G "Visual Studio 17 2022" -A x64
+cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="<path to your Eigen3 install>"
 cmake --build build --config Release
 ```
+
+If CMake can't find Eigen3 automatically, pass its install prefix via `-DCMAKE_PREFIX_PATH` (for a vcpkg install this is typically `<vcpkg root>/installed/x64-windows`).
 
 Executables are generated in:
 
@@ -228,5 +223,16 @@ This is an active research codebase accompanying ongoing work on
 implicit differentiable collision detection. The implementation is
 usable but evolving; APIs and interfaces may change without notice.
 
+The code is provided as-is for research and experimentation. If you use this code in your research, please cite:
 
+```bibtex
+@misc{mathew2026collisiondetectionanalyticalderivatives,
+      title={Collision Detection with Analytical Derivatives of Contact Kinematics}, 
+      author={Anup Teejo Mathew and Anees Peringal and Daniele Caradonna and Frederic Boyer and Federico Renda},
+      year={2026},
+      eprint={2602.03250},
+      archivePrefix={arXiv},
+      primaryClass={cs.RO},
+      url={https://arxiv.org/abs/2602.03250}, 
+}
 

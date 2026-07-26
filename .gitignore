@@ -27,3 +27,6 @@
 
 .obsidian/
 Vault/
+
+# rebuttal comparison experiment (throwaway, not part of the library)
+/experiments/
