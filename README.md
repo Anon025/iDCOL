@@ -6,11 +6,7 @@
 
 iDCOL is a differentiable contact kinematic framework for strictly convex contact geometry, designed for gradient-based simulation, planning, and optimization in contact-rich robotic systems.
 
-**Paper:** [Collision Detection with Analytical Derivatives of Contact Kinematics](https://www.arxiv.org/abs/2602.03250)
-
-**Website:** [gvsrobotics.github.io/iDCOL](https://gvsrobotics.github.io/iDCOL)
-
-**Julia port:** a Julia implementation is available at [iDCOL.jl](https://github.com/GVSRobotics/iDCOL.jl)
+**Julia port:** a Julia implementation is available at [iDCOL.jl](https://github.com/Anon025/iDCOL.jl)
 
 It provides:
 
@@ -222,17 +218,3 @@ iDCOL is built around three principles:
 This is an active research codebase accompanying ongoing work on
 implicit differentiable collision detection. The implementation is
 usable but evolving; APIs and interfaces may change without notice.
-
-The code is provided as-is for research and experimentation. If you use this code in your research, please cite:
-
-```bibtex
-@misc{mathew2026collisiondetectionanalyticalderivatives,
-      title={Collision Detection with Analytical Derivatives of Contact Kinematics}, 
-      author={Anup Teejo Mathew and Anees Peringal and Daniele Caradonna and Frederic Boyer and Federico Renda},
-      year={2026},
-      eprint={2602.03250},
-      archivePrefix={arXiv},
-      primaryClass={cs.RO},
-      url={https://arxiv.org/abs/2602.03250}, 
-}
-
